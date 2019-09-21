@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.athenian.chunker";
+option java_outer_classname = "ChunkerProto";
+option objc_class_prefix = "CP";
+
+package org.athenian;
+
+message UploadImageResponse {
+    int32 status = 1;
+    int32 chunk_count = 2;
+    int32 byte_count = 3;
+    int64 checksum = 4;
+}
+
+message UploadImageRequest {
+    oneof test_oneof {
+        // Changes to the field names meta, data, and summary are hard-coded in the impl code
+        MetaData meta = 1;
+        ChunkData data = 2;
+        SummaryData summary = 3;
+    }
+}
+
+message MetaData {
+    string auth = 1;
+    string file_name = 2;
+    string image_format = 3;
+}
+
+message ChunkData {
+    int32 chunk_count = 1;
+    int32 chunk_byte_count = 3;
+    int64 chunk_checksum = 4;
+    bytes chunk_bytes = 5;
+}
+
+message SummaryData {
+    int32 summary_chunk_count = 1;
+    int32 summary_byte_count = 2;
+    int64 summary_checksum = 3;
+}
+
+service Chunker {
+    rpc UploadImage (stream UploadImageRequest) returns (stream UploadImageResponse);
+}
