@@ -1,6 +1,6 @@
 default: stubs bin
 
-all: clean stubs kbuild bin
+all: clean stubs compile bin
 
 clean:
 	./gradlew clean
@@ -8,7 +8,7 @@ clean:
 stubs:
 	./gradlew generateProto
 
-kbuild:
+compile:
 	./gradlew assemble build
 
 bin:
