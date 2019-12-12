@@ -8,8 +8,10 @@ clean:
 stubs:
 	./gradlew generateProto
 
-compile:
-	./gradlew assemble build
+compile: build
+
+build:
+	./gradlew assemble build -xtest
 
 bin:
 	./gradlew install

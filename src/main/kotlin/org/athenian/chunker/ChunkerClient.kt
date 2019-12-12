@@ -35,7 +35,7 @@ class ChunkerClient internal constructor(private val channel: ManagedChannel) : 
         val responseObserver =
             object : StreamObserver<UploadImageResponse> {
                 override fun onNext(response: UploadImageResponse) {
-                    //logger.info { "Response:\n$response" }
+                    logger.debug { "Response:\n$response" }
 
                     // Check for checksum and length match
                     logger.info { "Checksums ${response.checksum} and ${clientChecksum.value} are equal ${response.checksum == clientChecksum.value}" }
@@ -100,8 +100,8 @@ class ChunkerClient internal constructor(private val channel: ManagedChannel) : 
 
                         val req =
                             UploadImageRequest.newBuilder()
-                                .run {
-                                    data =
+                                .let { builder ->
+                                    builder.data =
                                         ChunkData.newBuilder()
                                             .run {
                                                 chunkCount = clientChunkCount
@@ -110,7 +110,7 @@ class ChunkerClient internal constructor(private val channel: ManagedChannel) : 
                                                 chunkBytes = byteString
                                                 build()
                                             }
-                                    build()
+                                    builder.build()
                                 }
 
                         logger.info { "Writing $clientChunkCount of $bufferSize" }
