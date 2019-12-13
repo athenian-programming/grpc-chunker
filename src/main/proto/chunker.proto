@@ -31,9 +31,9 @@ message MetaData {
 
 message ChunkData {
     int32 chunk_count = 1;
-    int32 chunk_byte_count = 3;
-    int64 chunk_checksum = 4;
-    bytes chunk_bytes = 5;
+    int32 chunk_byte_count = 2;
+    int64 chunk_checksum = 3;
+    bytes chunk_bytes = 4;
 }
 
 message SummaryData {
