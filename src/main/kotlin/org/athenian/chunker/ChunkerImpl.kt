@@ -10,7 +10,6 @@ import java.util.zip.CRC32
 
 class ChunkerImpl : ChunkerGrpc.ChunkerImplBase() {
 
-    @ExperimentalStdlibApi
     override fun uploadImage(responseObserver: StreamObserver<UploadImageResponse>): StreamObserver<UploadImageRequest> =
         object : StreamObserver<UploadImageRequest> {
             var bos: BufferedOutputStream? = null
