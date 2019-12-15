@@ -28,18 +28,19 @@ class ChunkerClient internal constructor(private val channel: ManagedChannel) : 
     require(filepath.contains(".")) { "File name missing type suffix: $filepath" }
 
     val finishLatch = CountDownLatch(1)
-    var clientByteCount = 0
-    var clientChunkCount = 0
-    val clientChecksum = CRC32()
+    var totalByteCount = 0
+    var totalChunkCount = 0
+    val crcChecksum = CRC32()
 
     val responseObserver =
       object : StreamObserver<UploadImageResponse> {
         override fun onNext(response: UploadImageResponse) {
           logger.debug { "Response:\n$response" }
 
-          // Check for checksum and length match
-          logger.info { "Checksums ${response.checksum} and ${clientChecksum.value} are equal ${response.checksum == clientChecksum.value}" }
-          logger.info { "Byte counts $clientByteCount and ${response.byteCount} are equal ${clientByteCount == response.byteCount}" }
+          check(response.checksum == crcChecksum.value)
+          check(response.byteCount == totalByteCount)
+          logger.info { "Checksum ${response.checksum}" }
+          logger.info { "Byte counts $totalByteCount" }
 
           logger.info { "Releasing semaphore" }
           // Release semaphore to allow the next msg to be sent
@@ -90,12 +91,12 @@ class ChunkerClient internal constructor(private val channel: ManagedChannel) : 
         .use { fis ->
           val bis = BufferedInputStream(fis)
           val buffer = ByteArray(bufferSize)
-          var byteCount: Int
+          var readByteCount: Int
 
-          while (bis.read(buffer).also { bytesRead -> byteCount = bytesRead } > 0) {
-            clientByteCount += byteCount
-            clientChunkCount++
-            clientChecksum.update(buffer, 0, buffer.size);
+          while (bis.read(buffer).also { bytesRead -> readByteCount = bytesRead } > 0) {
+            totalByteCount += readByteCount
+            totalChunkCount++
+            crcChecksum.update(buffer, 0, buffer.size);
             val byteString: ByteString = ByteString.copyFrom(buffer)
 
             val req =
@@ -104,16 +105,16 @@ class ChunkerClient internal constructor(private val channel: ManagedChannel) : 
                   builder.data =
                     ChunkData.newBuilder()
                       .run {
-                        chunkCount = clientChunkCount
-                        chunkByteCount = byteCount
-                        chunkChecksum = clientChecksum.value
+                        chunkCount = totalChunkCount
+                        chunkByteCount = readByteCount
+                        chunkChecksum = crcChecksum.value
                         chunkBytes = byteString
                         build()
                       }
                   builder.build()
                 }
 
-            logger.info { "Writing $clientChunkCount of $bufferSize" }
+            logger.info { "Writing chunk $totalChunkCount ($readByteCount bytes)" }
             requestObserver.onNext(req)
 
             logger.info { "Waiting for semaphore" }
@@ -142,9 +143,9 @@ class ChunkerClient internal constructor(private val channel: ManagedChannel) : 
             summary =
               SummaryData.newBuilder()
                 .run {
-                  summaryChunkCount = clientChunkCount
-                  summaryByteCount = clientByteCount
-                  summaryChecksum = clientChecksum.value
+                  summaryChunkCount = totalChunkCount
+                  summaryByteCount = totalByteCount
+                  summaryChecksum = crcChecksum.value
                   build()
                 }
             build()
