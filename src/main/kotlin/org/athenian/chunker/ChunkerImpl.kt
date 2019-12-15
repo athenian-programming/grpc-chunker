@@ -1,5 +1,6 @@
 package org.athenian.chunker
 
+import com.google.protobuf.Empty
 import io.grpc.stub.StreamObserver
 import mu.KLogging
 import java.io.BufferedOutputStream
@@ -10,7 +11,7 @@ import java.util.zip.CRC32
 
 class ChunkerImpl : ChunkerGrpc.ChunkerImplBase() {
 
-  override fun uploadImage(responseObserver: StreamObserver<UploadImageResponse>): StreamObserver<UploadImageRequest> =
+  override fun uploadImage(responseObserver: StreamObserver<Empty>): StreamObserver<UploadImageRequest> =
     object : StreamObserver<UploadImageRequest> {
       lateinit var bos: BufferedOutputStream
       var totalChunkCount = 0
@@ -39,21 +40,6 @@ class ChunkerImpl : ChunkerGrpc.ChunkerImplBase() {
               write(data, 0, request.data.chunkByteCount)
               flush()
             }
-
-            val msg =
-              UploadImageResponse.newBuilder()
-                .run {
-                  status = 1
-                  chunkCount = totalChunkCount
-                  byteCount = totalByteCount
-                  checksum = crcChecksum.value
-                  build()
-                }
-
-            responseObserver.onNext(msg)
-
-            // Introduce a delay for testing
-            // Thread.sleep(Random.nextLong(1000))
           }
           "summary" -> {
             request.summary.apply {

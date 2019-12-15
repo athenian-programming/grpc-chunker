@@ -1,18 +1,11 @@
 syntax = "proto3";
 
+import public "google/protobuf/empty.proto";
+
 option java_multiple_files = true;
 option java_package = "org.athenian.chunker";
-option java_outer_classname = "ChunkerProto";
-option objc_class_prefix = "CP";
 
 package org.athenian;
-
-message UploadImageResponse {
-    int32 status = 1;
-    int32 chunk_count = 2;
-    int32 byte_count = 3;
-    int64 checksum = 4;
-}
 
 message UploadImageRequest {
     oneof test_oneof {
@@ -43,5 +36,5 @@ message SummaryData {
 }
 
 service Chunker {
-    rpc UploadImage (stream UploadImageRequest) returns (stream UploadImageResponse);
+    rpc UploadImage (stream UploadImageRequest) returns (google.protobuf.Empty);
 }
