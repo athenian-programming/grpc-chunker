@@ -12,7 +12,6 @@ version '1.0-SNAPSHOT'
 repositories {
     google()
     mavenCentral()
-    maven { url = "https://jitpack.io" }
 }
 
 kotlin {
@@ -54,17 +53,11 @@ protobuf {
         grpc {
             artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion"
         }
-
-        // Specify protoc to generate using our grpc kotlin plugin
-//        grpckt {
-//            artifact = "io.grpc:protoc-gen-grpc-kotlin:$gengrpcVersion:jdk8@jar"
-//        }
     }
     generateProtoTasks {
         all().each { task ->
             task.plugins {
                 grpc {}     // Generate Java gRPC classes
-//                grpckt {}   // Generate Kotlin gRPC using the custom plugin from library
             }
         }
     }
