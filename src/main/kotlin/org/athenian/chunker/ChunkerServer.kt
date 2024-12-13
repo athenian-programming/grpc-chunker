@@ -1,8 +1,8 @@
 package org.athenian.chunker
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.Server
 import io.grpc.ServerBuilder
-import mu.KLogging
 import java.io.IOException
 
 class ChunkerServer {
@@ -22,7 +22,8 @@ class ChunkerServer {
       })
   }
 
-  companion object : KLogging() {
+  companion object {
+    private val logger = KotlinLogging.logger {}
 
     const val port = 50051
 

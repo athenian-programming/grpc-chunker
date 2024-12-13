@@ -1,6 +1,6 @@
-default: stubs bin
+default: versioncheck
 
-all: clean stubs compile bin
+all: build bin
 
 clean:
 	./gradlew clean
@@ -8,9 +8,7 @@ clean:
 stubs:
 	./gradlew generateProto
 
-compile: build
-
-build:
+build: clean stubs
 	./gradlew assemble build -xtest
 
 bin:
@@ -24,3 +22,6 @@ server:
 
 versioncheck:
 	./gradlew dependencyUpdates
+
+upgrade-wrapper:
+	./gradlew wrapper --gradle-version=8.11.1 --distribution-type=bin

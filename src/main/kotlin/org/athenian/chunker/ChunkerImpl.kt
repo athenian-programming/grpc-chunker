@@ -1,16 +1,14 @@
 package org.athenian.chunker
 
 import com.google.protobuf.Empty
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.stub.StreamObserver
-import mu.KLogging
 import java.io.BufferedOutputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.zip.CRC32
 
-
 class ChunkerImpl : ChunkerGrpc.ChunkerImplBase() {
-
   override fun uploadImage(responseObserver: StreamObserver<Empty>): StreamObserver<UploadImageRequest> =
     object : StreamObserver<UploadImageRequest> {
       lateinit var bos: BufferedOutputStream
@@ -20,12 +18,13 @@ class ChunkerImpl : ChunkerGrpc.ChunkerImplBase() {
 
       override fun onNext(request: UploadImageRequest) {
         val ooc = request.testOneofCase
-        when (ooc.name.toLowerCase()) {
+        when (ooc.name.lowercase()) {
           "meta" -> {
             logger.info { request.meta }
             val fname = "data/received_file_${request.meta.fileName}.${request.meta.imageFormat}"
             bos = BufferedOutputStream(FileOutputStream(fname))
           }
+
           "data" -> {
             totalChunkCount++
             totalByteCount += request.data.chunkByteCount
@@ -41,6 +40,7 @@ class ChunkerImpl : ChunkerGrpc.ChunkerImplBase() {
               flush()
             }
           }
+
           "summary" -> {
             request.summary.apply {
               check(crcChecksum.value == summaryChecksum)
@@ -49,7 +49,8 @@ class ChunkerImpl : ChunkerGrpc.ChunkerImplBase() {
               logger.info { "Final checksum/chunkCount/byteCount ${crcChecksum.value}/$totalChunkCount/$totalByteCount" }
             }
           }
-          else -> throw IllegalStateException("Invalid field name in uploadImage()")
+
+          else -> throw IllegalStateException("Invalid field name in uploadImage(): ${ooc.name.lowercase()}")
         }
       }
 
@@ -65,9 +66,12 @@ class ChunkerImpl : ChunkerGrpc.ChunkerImplBase() {
           e.printStackTrace()
         }
 
+        responseObserver.onNext(Empty.getDefaultInstance());
         responseObserver.onCompleted()
       }
     }
 
-  companion object : KLogging()
+  companion object {
+    private val logger = KotlinLogging.logger {}
+  }
 }
